@@ -1,0 +1,8 @@
+name: NitramEco
+description: $description
+version: '${version}'
+
+main: dev.nitramnibus.nitrameco.NitramEco
+api-version: '1.21'
+
+authors: [ nitramnibus ]
