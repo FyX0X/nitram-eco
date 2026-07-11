@@ -1,6 +1,9 @@
 package dev.nitramnibus.nitrameco.database;
 
 import com.zaxxer.hikari.HikariDataSource;
+import dev.nitramnibus.nitrameco.NitramEco;
+import org.bukkit.Bukkit;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -8,20 +11,33 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 
 public class MoneyDAO {
 
     private static final String UPSERT = "INSERT INTO money VALUES(?, ?) ON DUPLICATE KEY UPDATE money=?";
     private static final String SELECT = "SELECT money from money WHERE uuid=?";
 
+    private final NitramEco plugin;
     private final HikariDataSource hikari;
+    private final Executor executor;
 
-
-    public MoneyDAO(HikariDataSource hikari) {
+    public MoneyDAO(NitramEco plugin, HikariDataSource hikari) {
+        this.plugin = plugin;
         this.hikari = hikari;
+        this.executor = new BukkitAsyncExecutor();
     }
 
-    public void setPlayerMoney(UUID uuid, long money) {
+    public CompletableFuture<Void> setPlayerMoneyAsync(UUID uuid, long money) {
+        return CompletableFuture.runAsync(() -> setPlayerMoney(uuid, money), executor);
+    }
+
+    public CompletableFuture<Long> getPlayerMoneyAsync(UUID uuid) {
+        return CompletableFuture.supplyAsync(() -> getPlayerMoney(uuid), executor);
+    }
+
+    private void setPlayerMoney(UUID uuid, long money) {
 
         try (Connection connection = hikari.getConnection();
              PreparedStatement statement = connection.prepareStatement(UPSERT)) {
@@ -36,7 +52,7 @@ public class MoneyDAO {
 
     }
 
-    public Optional<Long> getPlayerMoney(UUID uuid) {
+    private Long getPlayerMoney(UUID uuid) {
 
         try (Connection connection = hikari.getConnection();
              PreparedStatement statement = connection.prepareStatement(SELECT)) {
@@ -45,13 +61,22 @@ public class MoneyDAO {
             ResultSet result = statement.executeQuery();
 
             if (result.next()) {
-                return Optional.of(result.getLong("money"));
+                return result.getLong("money");
             }
 
         } catch (SQLException e) {
             throw new RuntimeException("Error when setting player money to database", e);
         }
 
-        return Optional.empty();
+        return -1L;
+    }
+
+
+    private class BukkitAsyncExecutor implements Executor {
+
+        @Override
+        public void execute(@NonNull Runnable runnable) {
+            Bukkit.getScheduler().runTaskAsynchronously(plugin, runnable);
+        }
     }
 }
