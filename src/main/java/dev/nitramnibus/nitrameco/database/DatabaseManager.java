@@ -29,6 +29,8 @@ public class DatabaseManager {
         HikariConfig hikariConfig = new HikariConfig(getHikariProperties());
         hikari = new HikariDataSource(hikariConfig);
 
+        initializeTable();
+
     }
 
     public void closeConnection() {
@@ -50,7 +52,7 @@ public class DatabaseManager {
         ) {
             statement.execute();
             logger.log(Level.INFO, "Database Table initialized successfully.");
-            
+
         } catch (SQLException e) {
             throw new RuntimeException("Could not initialize database's table", e);
         }
@@ -75,4 +77,6 @@ public class DatabaseManager {
 
         return props;
     }
+
+
 }
