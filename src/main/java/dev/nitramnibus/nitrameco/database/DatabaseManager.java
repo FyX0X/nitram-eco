@@ -6,16 +6,25 @@ import dev.nitramnibus.nitrameco.NitramEco;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class DatabaseManager {
 
     private final NitramEco plugin;
+    private final Logger logger;
+
+
     private final HikariDataSource hikari;
 
 
-    public DatabaseManager(NitramEco plugin) {
+    public DatabaseManager(NitramEco plugin, Logger logger) {
         this.plugin = plugin;
+        this.logger = logger;
 
         HikariConfig hikariConfig = new HikariConfig(getHikariProperties());
         hikari = new HikariDataSource(hikariConfig);
@@ -24,6 +33,28 @@ public class DatabaseManager {
 
     public void closeConnection() {
         hikari.close();
+    }
+
+    private void initializeTable() {
+
+        try (Connection connection = hikari.getConnection();
+             PreparedStatement statement = connection.prepareStatement("""
+                     CREATE TABLE IF NOT EXISTS money
+                     (
+                         uuid BINARY(16) NOT NULL,
+                         money BIGINT    NOT NULL,
+                     
+                         PRIMARY KEY (uuid)
+                     );
+                     """)
+        ) {
+            statement.execute();
+            logger.log(Level.INFO, "Database Table initialized successfully.");
+            
+        } catch (SQLException e) {
+            throw new RuntimeException("Could not initialize database's table", e);
+        }
+
     }
 
     private Properties getHikariProperties() {
