@@ -6,7 +6,7 @@ import java.util.UUID;
 
 
 
-// represent the money of all players, online or offline.
+// represent the money of all online players .
 // Used to not constantly query the database
 public class EconomySystem {
 
@@ -21,6 +21,10 @@ public class EconomySystem {
         }
         instantiated = true;
         playerMoney = new HashMap<>();
+    }
+
+    public void removePlayer(UUID uuid) {
+        playerMoney.remove(uuid);
     }
 
     public void setMoney(UUID uuid, @Nonnegative long money) {
