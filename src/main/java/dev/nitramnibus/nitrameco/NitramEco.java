@@ -1,5 +1,8 @@
 package dev.nitramnibus.nitrameco;
 
+import dev.nitramnibus.nitrameco.commands.BalanceCommand;
+import dev.nitramnibus.nitrameco.commands.PayCommand;
+import dev.nitramnibus.nitrameco.commands.SetMoneyCommand;
 import dev.nitramnibus.nitrameco.database.DatabaseManager;
 import dev.nitramnibus.nitrameco.database.MoneyDAO;
 import dev.nitramnibus.nitrameco.listeners.EconomyListener;
@@ -25,6 +28,12 @@ public final class NitramEco extends JavaPlugin {
         economySystem = new EconomySystem(moneyDAO, logger);
 
         Bukkit.getPluginManager().registerEvents(new EconomyListener(economySystem), this);
+
+        // register commands
+        getCommand("balance").setExecutor(new BalanceCommand(economySystem));
+        getCommand("pay").setExecutor(new PayCommand(economySystem));
+        getCommand("setmoney").setExecutor(new SetMoneyCommand(economySystem));
+
     }
 
     @Override
