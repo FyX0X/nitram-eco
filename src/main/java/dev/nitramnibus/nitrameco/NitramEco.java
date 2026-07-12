@@ -24,7 +24,7 @@ public final class NitramEco extends JavaPlugin {
 
         database = new DatabaseManager(this, logger);
 
-        MoneyDAO moneyDAO = new MoneyDAO(this, database.getDataSource());
+        MoneyDAO moneyDAO = new MoneyDAO(this, database.getDataSource(), logger);
         economySystem = new EconomySystem(moneyDAO, logger);
 
         Bukkit.getPluginManager().registerEvents(new EconomyListener(economySystem), this);
@@ -34,6 +34,9 @@ public final class NitramEco extends JavaPlugin {
         getCommand("pay").setExecutor(new PayCommand(economySystem));
         getCommand("setmoney").setExecutor(new SetMoneyCommand(economySystem));
 
+        // ensure already present are loaded
+        economySystem.loadAllPlayers();
+
     }
 
     @Override
@@ -41,7 +44,7 @@ public final class NitramEco extends JavaPlugin {
         // Plugin shutdown logic
 
         // ensure to save player data if no PlayerQuitEvent sent.
-        economySystem.saveAllPlayers();
+        economySystem.saveAllPlayersBlocking();
 
         database.closeConnection();
     }

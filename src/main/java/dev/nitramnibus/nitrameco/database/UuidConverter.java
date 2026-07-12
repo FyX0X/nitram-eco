@@ -6,7 +6,7 @@ import java.util.UUID;
 public class UuidConverter {
 
     public static byte[] toBytes(UUID uuid) {
-        ByteBuffer bb = ByteBuffer.allocateDirect(16);
+        ByteBuffer bb = ByteBuffer.allocate(16);
         bb.putLong(uuid.getMostSignificantBits());
         bb.putLong(uuid.getLeastSignificantBits());
         return bb.array();

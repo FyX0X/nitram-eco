@@ -2,6 +2,7 @@ package dev.nitramnibus.nitrameco.systems;
 
 import dev.nitramnibus.nitrameco.NitramEco;
 import dev.nitramnibus.nitrameco.database.MoneyDAO;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import javax.annotation.Nonnegative;
@@ -93,9 +94,23 @@ public class EconomySystem {
                 });
     }
 
+    public void loadAllPlayers() {
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            loadPlayer(player.getUniqueId());
+        }
+    }
+
     public void saveAllPlayers() {
         for (UUID uuid : playerMoney.keySet()) {
             savePlayer(uuid);
         }
     }
+
+    public void saveAllPlayersBlocking() {
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            UUID uuid = player.getUniqueId();
+            moneyDAO.setPlayerMoney(uuid, getMoney(uuid));
+        }
+    }
+
 }

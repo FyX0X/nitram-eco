@@ -13,19 +13,23 @@ import java.sql.SQLException;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class MoneyDAO {
 
     private static final String UPSERT = "INSERT INTO money VALUES(?, ?) ON DUPLICATE KEY UPDATE money=?";
-    private static final String SELECT = "SELECT money from money WHERE uuid=?";
+    private static final String SELECT = "SELECT * from money WHERE uuid=?";
 
     private final NitramEco plugin;
     private final DataSource dataSource;
     private final Executor executor;
+    private final Logger logger;
 
-    public MoneyDAO(NitramEco plugin, DataSource dataSource) {
+    public MoneyDAO(NitramEco plugin, DataSource dataSource, Logger logger) {
         this.plugin = plugin;
         this.dataSource = dataSource;
+        this.logger = logger;
         this.executor = new BukkitAsyncExecutor();
     }
 
@@ -37,7 +41,13 @@ public class MoneyDAO {
         return CompletableFuture.supplyAsync(() -> getPlayerMoney(uuid), executor);
     }
 
-    private void setPlayerMoney(UUID uuid, long money) {
+    /**
+     * Set the player money to the database.
+     * Warning : This is a BLOCKING Call and should only be called when plugin gets disabled.
+     * @param uuid the UUID of the player.
+     * @param money the balance to save.
+     */
+    public void setPlayerMoney(UUID uuid, long money) {
 
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(UPSERT)) {
@@ -45,6 +55,7 @@ public class MoneyDAO {
             statement.setBytes(1, UuidConverter.toBytes(uuid));
             statement.setLong(2, money);
             statement.setLong(3, money);
+            statement.execute();
 
         } catch (SQLException e) {
             throw new RuntimeException("Error when setting player money to database", e);
@@ -52,7 +63,7 @@ public class MoneyDAO {
 
     }
 
-    private Long getPlayerMoney(UUID uuid) {
+    public long getPlayerMoney(UUID uuid) {
 
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(SELECT)) {
@@ -67,8 +78,8 @@ public class MoneyDAO {
         } catch (SQLException e) {
             throw new RuntimeException("Error when setting player money to database", e);
         }
-
-        return -1L;
+        logger.log(Level.WARNING, "Could not retrieve player money from database");
+        return 0L;
     }
 
 
