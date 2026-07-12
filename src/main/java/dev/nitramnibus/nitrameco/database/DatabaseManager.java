@@ -4,6 +4,7 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import dev.nitramnibus.nitrameco.NitramEco;
 
+import javax.sql.DataSource;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Connection;
@@ -31,6 +32,10 @@ public class DatabaseManager {
 
         initializeTable();
 
+    }
+
+    public DataSource getDataSource() {
+        return hikari;
     }
 
     public void closeConnection() {

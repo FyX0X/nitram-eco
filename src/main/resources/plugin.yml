@@ -6,3 +6,26 @@ main: dev.nitramnibus.nitrameco.NitramEco
 api-version: '1.21'
 
 authors: [ nitramnibus ]
+
+
+commands:
+  balance:
+    description: Check your account's balance
+    usage: "Usage: /<command>"
+  pay:
+    description: Check your account's balance
+    usage: "Usage: /<command> [Player] [amount]"
+    permission: NitramEco.default
+  setmoney:
+    description: Check your account's balance
+    usage: "Usage: /<command> (Player) [amount]"
+    permission: NitramEco.*
+
+
+permissions:
+  NitramEco.default:
+    default: true
+  NitramEco.*:
+    default: op
+    child:
+      NitramEco.default: true

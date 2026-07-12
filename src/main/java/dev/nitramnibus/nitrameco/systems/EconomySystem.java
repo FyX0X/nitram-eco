@@ -76,8 +76,7 @@ public class EconomySystem {
         return true;
     }
 
-    public void loadPlayer(Player player) {
-        UUID uuid = player.getUniqueId();
+    public void loadPlayer(UUID uuid) {
         moneyDAO.getPlayerMoneyAsync(uuid)
                 .thenAccept(money -> setMoney(uuid, money))
                 .exceptionally(error -> {
@@ -86,12 +85,17 @@ public class EconomySystem {
                 });
     }
 
-    public void savePlayer(Player player) {
-        UUID uuid = player.getUniqueId();
+    public void savePlayer(UUID uuid) {
         moneyDAO.setPlayerMoneyAsync(uuid, getMoney(uuid))
                 .exceptionally(error -> {
                     logger.log(Level.SEVERE, "Could not save player money to database: ", error);
                     return null;
                 });
+    }
+
+    public void saveAllPlayers() {
+        for (UUID uuid : playerMoney.keySet()) {
+            savePlayer(uuid);
+        }
     }
 }

@@ -5,11 +5,11 @@ import dev.nitramnibus.nitrameco.NitramEco;
 import org.bukkit.Bukkit;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
+import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
@@ -20,12 +20,12 @@ public class MoneyDAO {
     private static final String SELECT = "SELECT money from money WHERE uuid=?";
 
     private final NitramEco plugin;
-    private final HikariDataSource hikari;
+    private final DataSource dataSource;
     private final Executor executor;
 
-    public MoneyDAO(NitramEco plugin, HikariDataSource hikari) {
+    public MoneyDAO(NitramEco plugin, DataSource dataSource) {
         this.plugin = plugin;
-        this.hikari = hikari;
+        this.dataSource = dataSource;
         this.executor = new BukkitAsyncExecutor();
     }
 
@@ -39,7 +39,7 @@ public class MoneyDAO {
 
     private void setPlayerMoney(UUID uuid, long money) {
 
-        try (Connection connection = hikari.getConnection();
+        try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(UPSERT)) {
 
             statement.setBytes(1, UuidConverter.toBytes(uuid));
@@ -54,7 +54,7 @@ public class MoneyDAO {
 
     private Long getPlayerMoney(UUID uuid) {
 
-        try (Connection connection = hikari.getConnection();
+        try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(SELECT)) {
 
             statement.setBytes(1, UuidConverter.toBytes(uuid));
