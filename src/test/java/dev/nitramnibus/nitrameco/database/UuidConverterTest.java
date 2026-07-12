@@ -1,7 +1,6 @@
-package dev.nitramnibus.nitrameco.database.test;
+package dev.nitramnibus.nitrameco.database;
 
 
-import dev.nitramnibus.nitrameco.database.UuidConverter;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
