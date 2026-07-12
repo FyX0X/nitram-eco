@@ -8,15 +8,30 @@ import dev.nitramnibus.nitrameco.database.MoneyDAO;
 import dev.nitramnibus.nitrameco.listeners.EconomyListener;
 import dev.nitramnibus.nitrameco.systems.EconomySystem;
 import org.bukkit.Bukkit;
+import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.plugin.java.JavaPluginLoader;
 
+import java.io.File;
 import java.util.logging.Logger;
 
-public final class NitramEco extends JavaPlugin {
+public class NitramEco extends JavaPlugin {
 
     private final Logger logger = getLogger();
     private DatabaseManager database;
     private EconomySystem economySystem;
+
+
+    public NitramEco()
+    {
+        super();
+    }
+
+    // used for MockBukkit
+    protected NitramEco(JavaPluginLoader loader, PluginDescriptionFile description, File dataFolder, File file)
+    {
+        super(loader, description, dataFolder, file);
+    }
 
     @Override
     public void onEnable() {
@@ -47,5 +62,13 @@ public final class NitramEco extends JavaPlugin {
         economySystem.saveAllPlayersBlocking();
 
         database.closeConnection();
+    }
+
+    /**
+     * Prefer dependency injection, use this only in testing suite.
+     * @return the plugin's economy system.
+     */
+    public EconomySystem getEconomySystem() {
+        return economySystem;
     }
 }
