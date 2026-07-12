@@ -45,14 +45,18 @@ public class SetMoneyCommandTest {
         PlayerMock player = server.addPlayer("TestPlayer");
         UUID uuid = player.getUniqueId();
 
+
         player.performCommand("setmoney 10"); // should not work since no permission
+        System.out.println(player.nextMessage());
         assertEquals(0, economy.getMoney(uuid));
 
         server.dispatchCommand(console, "setmoney TestPlayer 20");
+        System.out.println(player.nextMessage());
         assertEquals(20, economy.getMoney(uuid));
 
-        server.dispatchCommand(console, "op TestPlayer");
+        player.addAttachment(plugin, "nitrameco.*", true);
         player.performCommand("setmoney 10"); // should work since has permission
+        System.out.println(player.nextMessage());
         assertEquals(10, economy.getMoney(uuid));
 
 
