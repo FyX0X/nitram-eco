@@ -1,9 +1,17 @@
 package dev.nitramnibus.nitrameco.systems;
 
+import dev.nitramnibus.nitrameco.NitramEco;
+import dev.nitramnibus.nitrameco.database.MoneyDAO;
+import org.bukkit.entity.Player;
+
 import javax.annotation.Nonnegative;
+import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.UUID;
-
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 
 // represent the money of all online players .
@@ -12,15 +20,18 @@ public class EconomySystem {
 
     private static boolean instantiated = false;
 
-    private final HashMap<UUID, Long> playerMoney;
+    private final ConcurrentHashMap<UUID, Long> playerMoney;
+    private final MoneyDAO moneyDAO;
+    private final Logger logger;
 
-
-    public EconomySystem() {
+    public EconomySystem(MoneyDAO moneyDAO, Logger logger) {
         if (instantiated) {
             throw new IllegalStateException("Cannot create multiple Economy System");
         }
         instantiated = true;
-        playerMoney = new HashMap<>();
+        this.playerMoney = new ConcurrentHashMap<>();
+        this.moneyDAO = moneyDAO;
+        this.logger = logger;
     }
 
     public void removePlayer(UUID uuid) {
@@ -31,8 +42,17 @@ public class EconomySystem {
         playerMoney.put(uuid, money);
     }
 
+    /**
+     * Gets the money of a currently ONLINE player.
+     * @param uuid the UUID of the player.
+     * @return the balance of the player.
+     */
     public long getMoney(UUID uuid) {
-        return playerMoney.get(uuid);
+        Long money = playerMoney.get(uuid);
+        if (money == null) {
+            throw new IllegalStateException("No balance loaded for player " + uuid);
+        }
+        return money;
     }
 
     public void addMoney(UUID uuid, @Nonnegative long amount) {
@@ -54,5 +74,24 @@ public class EconomySystem {
         }
         addMoney(to, amount);
         return true;
+    }
+
+    public void loadPlayer(Player player) {
+        UUID uuid = player.getUniqueId();
+        moneyDAO.getPlayerMoneyAsync(uuid)
+                .thenAccept(money -> setMoney(uuid, money))
+                .exceptionally(error -> {
+                    logger.log(Level.SEVERE, "Could not load player money from database: ", error);
+                    return null;
+                });
+    }
+
+    public void savePlayer(Player player) {
+        UUID uuid = player.getUniqueId();
+        moneyDAO.setPlayerMoneyAsync(uuid, getMoney(uuid))
+                .exceptionally(error -> {
+                    logger.log(Level.SEVERE, "Could not save player money to database: ", error);
+                    return null;
+                });
     }
 }
